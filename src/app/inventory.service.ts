@@ -19,6 +19,8 @@ export class InventoryService {
   readonly rooms = signal<Room[]>([]);
   readonly items = signal<Item[]>([]);
   readonly ready = signal(false);
+  /** signed in but Firestore denied access (not in the allowed group) */
+  readonly accessDenied = signal(false);
   readonly notConfigured = firebaseNotConfigured;
   /** true = no Firebase config yet → run fully in-memory (preview mode) */
   private local = firebaseNotConfigured;
@@ -38,11 +40,11 @@ export class InventoryService {
 
   private auth = inject(AuthService);
 
-  private uid = () => this.auth.user()?.uid ?? '_none_';
-  private roomsCol = () => collection(db, 'users', this.uid(), 'rooms');
-  private itemsCol = () => collection(db, 'users', this.uid(), 'items');
-  private roomRef = (id: string) => doc(db, 'users', this.uid(), 'rooms', id);
-  private itemRef = (id: string) => doc(db, 'users', this.uid(), 'items', id);
+  // ข้อมูลส่วนกลาง (ใช้ร่วมกันทั้งกลุ่ม) — สิทธิ์เข้าถึงคุมด้วย Firestore Rules ตามรายชื่ออีเมล
+  private roomsCol = () => collection(db, 'rooms');
+  private itemsCol = () => collection(db, 'items');
+  private roomRef = (id: string) => doc(db, 'rooms', id);
+  private itemRef = (id: string) => doc(db, 'items', id);
 
   constructor() {
     if (this.local) {
@@ -56,19 +58,26 @@ export class InventoryService {
     // (re)subscribe to the signed-in user's data whenever the account changes
     effect((onCleanup) => {
       const user = this.auth.user();
+      this.accessDenied.set(false);
       if (!user) { this.rooms.set([]); this.items.set([]); this.ready.set(true); return; }
+      const onErr = (err: any) => {
+        console.error('snapshot', err);
+        if (err?.code === 'permission-denied') this.accessDenied.set(true);
+        this.ready.set(true);
+      };
       const unsubR = onSnapshot(this.roomsCol(), (snap) => {
         const rooms = snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Room, 'id'>) }));
         rooms.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        this.accessDenied.set(false);
         this.rooms.set(rooms);
         if (!this.selectedRoomId() && rooms[0]) this.selectedRoomId.set(rooms[0].id);
         this.ready.set(true);
-      }, (err) => { console.error('rooms snapshot', err); this.ready.set(true); });
+      }, onErr);
       const unsubI = onSnapshot(this.itemsCol(), (snap) => {
         const items = snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Item, 'id'>) }));
         items.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
         this.items.set(items);
-      }, (err) => console.error('items snapshot', err));
+      }, onErr);
       onCleanup(() => { unsubR(); unsubI(); });
     });
   }

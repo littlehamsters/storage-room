@@ -7,6 +7,7 @@ import { ItemFormComponent } from './components/item-form.component';
 import { RestockComponent } from './components/restock.component';
 import { RoomFormComponent } from './components/room-form.component';
 import { LoginComponent } from './components/login.component';
+import { NoAccessComponent } from './components/no-access.component';
 import { HistoryComponent } from './components/history.component';
 import { ToastComponent } from './components/toast.component';
 
@@ -14,12 +15,14 @@ import { ToastComponent } from './components/toast.component';
   selector: 'app-root',
   standalone: true,
   imports: [RouterOutlet, RouterLink, RouterLinkActive, FormsModule,
-    ItemFormComponent, RestockComponent, RoomFormComponent, LoginComponent, HistoryComponent, ToastComponent],
+    ItemFormComponent, RestockComponent, RoomFormComponent, LoginComponent, NoAccessComponent, HistoryComponent, ToastComponent],
   template: `
   @if (!authResolved()) {
     <div class="hs-boot"><div class="hs-boot-ic">🏠</div><div class="hs-spin"></div></div>
   } @else if (needLogin()) {
     <app-login />
+  } @else if (svc.accessDenied()) {
+    <app-no-access />
   } @else {
     <div class="hs-shell">
       <aside class="hs-side" [class.open]="sideOpen()">
