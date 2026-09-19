@@ -42,3 +42,7 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Firebase service account key + local exports (ห้าม commit เด็ดขาด)
+serviceAccountKey.json
+home_stock_export.json

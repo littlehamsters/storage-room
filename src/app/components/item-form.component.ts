@@ -22,7 +22,7 @@ import { CATS, UNITS } from '../models';
           <div class="f"><label>ห้อง</label>
             <select [(ngModel)]="f.roomId">@for (r of svc.rooms(); track r.id) {<option [value]="r.id">{{ r.name }}</option>}</select></div>
           <div class="f"><label>หมวดหมู่</label>
-            <select [(ngModel)]="f.category">@for (c of cats; track c) {<option [value]="c">{{ c }}</option>}</select></div>
+            <select [(ngModel)]="f.category">@for (c of svc.catList(); track c) {<option [value]="c">{{ c }}</option>}</select></div>
           <div class="f"><label>จำนวน</label><input type="number" min="0" step="1" [(ngModel)]="f.stock"></div>
           <div class="f"><label>หน่วยนับ</label>
             <select [(ngModel)]="f.unit">@for (u of units; track u) {<option [value]="u">{{ u }}</option>}</select></div>
@@ -78,7 +78,7 @@ export class ItemFormComponent {
         name: this.f.name.trim(),
         brand: this.f.brand.trim(),
         roomId: this.f.roomId,
-        category: this.f.category,
+        category: this.f.category.trim(),
         unit: this.f.unit,
         stock: Math.max(0, +this.f.stock || 0),
         price: Math.max(0, +this.f.price || 0),

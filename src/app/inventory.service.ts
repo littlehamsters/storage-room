@@ -18,6 +18,7 @@ export interface ItemInput {
 export class InventoryService {
   readonly rooms = signal<Room[]>([]);
   readonly items = signal<Item[]>([]);
+  readonly customCats = signal<{ id: string; name: string; order?: number }[]>([]);
   readonly ready = signal(false);
   /** signed in but Firestore denied access (not in the allowed group) */
   readonly accessDenied = signal(false);
@@ -43,8 +44,10 @@ export class InventoryService {
   // ข้อมูลส่วนกลาง (ใช้ร่วมกันทั้งกลุ่ม) — สิทธิ์เข้าถึงคุมด้วย Firestore Rules ตามรายชื่ออีเมล
   private roomsCol = () => collection(db, 'rooms');
   private itemsCol = () => collection(db, 'items');
+  private catsCol = () => collection(db, 'categories');
   private roomRef = (id: string) => doc(db, 'rooms', id);
   private itemRef = (id: string) => doc(db, 'items', id);
+  private catRef = (id: string) => doc(db, 'categories', id);
 
   constructor() {
     if (this.local) {
@@ -78,7 +81,13 @@ export class InventoryService {
         items.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
         this.items.set(items);
       }, onErr);
-      onCleanup(() => { unsubR(); unsubI(); });
+      // categories: ไม่ block การเข้าถึง (ถ้า rules ยังไม่รองรับก็แค่ว่าง)
+      const unsubC = onSnapshot(this.catsCol(), (snap) => {
+        const cats = snap.docs.map((d) => ({ id: d.id, ...(d.data() as { name: string; order?: number }) }));
+        cats.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        this.customCats.set(cats);
+      }, (err) => console.warn('categories snapshot', err?.code || err));
+      onCleanup(() => { unsubR(); unsubI(); unsubC(); });
     });
   }
 
@@ -97,9 +106,24 @@ export class InventoryService {
   needsRefill = (it: Item) => it.min > 0 && it.stock <= it.min;
 
   catList(): string[] {
-    const extra = [...new Set(this.items().map((i) => i.category).filter(Boolean) as string[])]
-      .filter((c) => !CATS.includes(c));
-    return [...CATS, ...extra];
+    const names = new Set<string>(CATS);
+    this.customCats().forEach((c) => names.add(c.name));
+    this.items().forEach((i) => { if (i.category) names.add(i.category); });
+    const rest = [...names].filter((n) => !CATS.includes(n)).sort((a, b) => a.localeCompare(b, 'th'));
+    return [...CATS, ...rest];
+  }
+  isCustomCat = (name: string) => this.customCats().some((c) => c.name === name);
+
+  async addCategory(name: string) {
+    const n = name.trim();
+    if (!n) return;
+    if (this.catList().some((c) => c.toLowerCase() === n.toLowerCase())) throw new Error('มีหมวดนี้อยู่แล้ว');
+    if (this.local) { this.customCats.update((a) => [...a, { id: this.genId(), name: n, order: a.length }]); return; }
+    await addDoc(this.catsCol(), { name: n, order: this.customCats().length });
+  }
+  async deleteCategory(id: string) {
+    if (this.local) { this.customCats.update((a) => a.filter((c) => c.id !== id)); return; }
+    await deleteDoc(this.catRef(id));
   }
   catColor = (c?: string) => 'cat-c' + (((this.catList().indexOf(c ?? '') % 8) + 8) % 8);
   catEmoji = (c?: string) => CAT_EMOJI[c ?? ''] || '📦';
