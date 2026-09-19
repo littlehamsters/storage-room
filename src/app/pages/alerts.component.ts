@@ -27,19 +27,6 @@ export class AlertsComponent {
   rows = computed(() => this.svc.items().filter((i) => this.svc.needsRefill(i)));
   meta = computed(() => `${this.rows().length} รายการที่ควรเติมหรือตรวจสอบ`);
 
-  private avgPerPiece(it: Item): number {
-    const log = it.log ?? [];
-    const q = log.reduce((s, l) => s + (+l.qty || 0), 0);
-    const spent = log.reduce((s, l) => s + (+(l.price || 0)), 0);
-    if (q > 0 && spent > 0) return spent / q;
-    return this.svc.unitPrice(it);
-  }
-  private minPerPiece(it: Item): number | null {
-    const v = (it.log ?? [])
-      .filter((l) => (l.price || 0) > 0 && (l.qty || 0) > 0)
-      .map((l) => (l.price as number) / l.qty);
-    return v.length ? Math.min(...v) : null;
-  }
   private buyQty(it: Item): number {
     return Math.max(1, Math.ceil((it.min || 1) - it.stock));
   }
@@ -62,7 +49,7 @@ export class AlertsComponent {
     const data = items.map((it) => ({
       name: it.name, room: this.svc.roomById(it.roomId)?.name || '',
       unit: it.unit, stock: it.stock, min: it.min,
-      buy: this.buyQty(it), avg: this.avgPerPiece(it), low: this.minPerPiece(it),
+      buy: this.buyQty(it), avg: this.svc.avgPerPiece(it), low: this.svc.minPerPiece(it),
     }));
 
     /* ── กระดาษปกติ (มินิมอล) ── */

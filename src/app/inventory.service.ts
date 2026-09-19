@@ -96,6 +96,20 @@ export class InventoryService {
   value = (it: Item) => (+it.price || 0);
   // เฉลี่ยต่อชิ้น = ราคารวม ÷ จำนวน
   unitPrice = (it: Item) => { const q = +it.stock || 0; return q > 0 ? (+it.price || 0) / q : 0; };
+  // ราคาเฉลี่ยต่อชิ้นจากประวัติการเติม (ถ่วงน้ำหนัก) ถ้าไม่มีประวัติใช้ unitPrice
+  avgPerPiece = (it: Item) => {
+    const log = it.log ?? [];
+    const q = log.reduce((s, l) => s + (+l.qty || 0), 0);
+    const spent = log.reduce((s, l) => s + (+(l.price || 0)), 0);
+    return q > 0 && spent > 0 ? spent / q : this.unitPrice(it);
+  };
+  // ราคาต่อชิ้นที่ถูกที่สุดที่เคยซื้อ (จากประวัติ) — null ถ้าไม่มีข้อมูล
+  minPerPiece = (it: Item): number | null => {
+    const v = (it.log ?? [])
+      .filter((l) => (l.price || 0) > 0 && (l.qty || 0) > 0)
+      .map((l) => (l.price as number) / l.qty);
+    return v.length ? Math.min(...v) : null;
+  };
   status(it: Item): StockStatus {
     if (!it.min) return 'ok';
     if (it.stock <= 0) return 'out';

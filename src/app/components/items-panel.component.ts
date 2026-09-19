@@ -48,7 +48,7 @@ import { Item } from '../models';
       <div class="hs-twrap"><table class="hs-table">
         <thead><tr>
           <th>สินค้า</th><th>หมวดหมู่</th><th>ห้อง</th>
-          <th class="num">จำนวน</th><th class="num">ราคา/ชิ้น</th><th class="num">มูลค่ารวม</th>
+          <th class="num">จำนวน</th><th class="num">เฉลี่ย/ชิ้น</th><th class="num">ต่ำสุด/ชิ้น</th>
           <th>สถานะ</th><th>หมายเหตุ</th><th></th>
         </tr></thead>
         <tbody>
@@ -59,13 +59,13 @@ import { Item } from '../models';
               <td>@if (it.category) {<span class="hs-cat-pill {{ svc.catColor(it.category) }}">{{ it.category }}</span>} @else {<span class="hs-mut">-</span>}</td>
               <td class="hs-mut">{{ svc.roomById(it.roomId)?.name || '-' }}</td>
               <td class="num"><b>{{ svc.fmtN(it.stock) }}</b> <span class="hs-mut">{{ it.unit }}</span></td>
-              <td class="num">@if (svc.unitPrice(it)) {{{ svc.fmtN(svc.unitPrice(it)) }}} @else {<span class="hs-mut">-</span>}</td>
-              <td class="num"><b>@if (svc.value(it)) {{{ svc.fmtB(svc.value(it)) }}} @else {<span class="hs-mut" style="font-weight:400">-</span>}</b></td>
+              <td class="num">@if (svc.avgPerPiece(it)) {{{ svc.fmtN(svc.avgPerPiece(it)) }}} @else {<span class="hs-mut">-</span>}</td>
+              <td class="num"><b>@if (svc.minPerPiece(it) != null) {{{ svc.fmtN(svc.minPerPiece(it)!) }}} @else {<span class="hs-mut" style="font-weight:400">-</span>}</b></td>
               <td><span class="hs-stat-pill {{ svc.status(it) }}">{{ svc.statusLabel(it) }}</span></td>
               <td class="hs-mut">{{ it.note || '-' }}</td>
               <td>
                 <div class="hs-row-act">
-                  @if (it.min > 0) {<button class="hs-ib use" title="ใช้ไป 1" (click)="svc.consume(it)"><i class="ti ti-minus"></i></button>}
+                  @if (it.stock > 0) {<button class="hs-ib use" title="ใช้ไป 1" (click)="svc.consume(it)"><i class="ti ti-minus"></i></button>}
                   <button class="hs-ib add" title="เติมของ" (click)="svc.openRestock(it)"><i class="ti ti-plus"></i></button>
                   <button class="hs-ib" title="ประวัติการเติม" (click)="svc.openHistory(it)"><i class="ti ti-history"></i></button>
                   <button class="hs-ib" title="แก้ไข" (click)="svc.openItem(it)"><i class="ti ti-pencil"></i></button>
@@ -85,10 +85,11 @@ import { Item } from '../models';
                 <div class="hs-gcard-br">{{ it.brand || svc.roomById(it.roomId)?.name }}</div></div></div>
             @if (it.category) {<span class="hs-cat-pill {{ svc.catColor(it.category) }}" style="align-self:flex-start">{{ it.category }}</span>}
             <div class="hs-gcard-row"><span class="k">จำนวน</span><span><b>{{ svc.fmtN(it.stock) }}</b> {{ it.unit }}</span></div>
-            <div class="hs-gcard-row"><span class="k">มูลค่ารวม</span><span><b>@if (svc.value(it)) {{{ svc.fmtB(svc.value(it)) }} ฿} @else {-}</b></span></div>
+            <div class="hs-gcard-row"><span class="k">เฉลี่ย/ชิ้น</span><span>@if (svc.avgPerPiece(it)) {<b>{{ svc.fmtN(svc.avgPerPiece(it)) }}</b> ฿} @else {-}</span></div>
+            <div class="hs-gcard-row"><span class="k">ต่ำสุด/ชิ้น</span><span>@if (svc.minPerPiece(it) != null) {<b>{{ svc.fmtN(svc.minPerPiece(it)!) }}</b> ฿} @else {-}</span></div>
             <div class="hs-gcard-foot"><span class="hs-stat-pill {{ svc.status(it) }}">{{ svc.statusLabel(it) }}</span>
               <div class="hs-row-act">
-                @if (it.min > 0) {<button class="hs-ib use" (click)="svc.consume(it)"><i class="ti ti-minus"></i></button>}
+                @if (it.stock > 0) {<button class="hs-ib use" title="ใช้ไป 1" (click)="svc.consume(it)"><i class="ti ti-minus"></i></button>}
                 <button class="hs-ib add" (click)="svc.openRestock(it)"><i class="ti ti-plus"></i></button>
                 <button class="hs-ib" title="ประวัติการเติม" (click)="svc.openHistory(it)"><i class="ti ti-history"></i></button>
                 <button class="hs-ib" (click)="svc.openItem(it)"><i class="ti ti-pencil"></i></button>
