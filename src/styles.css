@@ -46,7 +46,7 @@ body{background:var(--hs-bg);color:var(--hs-ink);font-family:'Inter','IBM Plex S
 .hs-top{position:sticky;top:0;z-index:40;height:72px;background:var(--hs-bg);display:flex;align-items:center;gap:16px;padding:0 28px}
 .hs-burger{display:none;width:40px;height:40px;border:1px solid var(--hs-line2);background:var(--hs-surface);border-radius:10px;color:var(--hs-ink2);cursor:pointer;align-items:center;justify-content:center}
 .hs-burger i{font-size:20px}
-.hs-search{flex:1;max-width:560px;height:46px;background:var(--hs-surface);border:1px solid var(--hs-line2);border-radius:12px;display:flex;align-items:center;gap:10px;padding:0 14px;transition:.15s}
+.hs-search{flex:1;min-width:0;max-width:560px;height:46px;background:var(--hs-surface);border:1px solid var(--hs-line2);border-radius:12px;display:flex;align-items:center;gap:10px;padding:0 14px;transition:.15s}
 .hs-search:focus-within{border-color:var(--hs-green);box-shadow:0 0 0 3px var(--hs-green-ring)}
 .hs-search i{font-size:19px;color:var(--hs-ink3)}
 .hs-search input{flex:1;border:none;background:none;outline:none;font-family:inherit;font-size:14px;color:var(--hs-ink)}
@@ -158,7 +158,8 @@ body{background:var(--hs-bg);color:var(--hs-ink);font-family:'Inter','IBM Plex S
 .hs-gcard-br{font-size:11.5px;color:var(--hs-ink3)}
 .hs-gcard-row{display:flex;align-items:center;justify-content:space-between;font-size:13px}
 .hs-gcard-row .k{color:var(--hs-ink3)}
-.hs-gcard-foot{display:flex;align-items:center;justify-content:space-between;margin-top:2px;padding-top:10px;border-top:1px solid var(--hs-line)}
+.hs-gcard-foot{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin-top:2px;padding-top:10px;border-top:1px solid var(--hs-line)}
+.hs-gcard-foot .hs-row-act{width:100%;justify-content:flex-end;flex-wrap:wrap}
 
 /* ── Pager ── */
 .hs-pager{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 22px}
@@ -253,6 +254,22 @@ body{background:var(--hs-bg);color:var(--hs-ink);font-family:'Inter','IBM Plex S
   .hs-search-kbd{display:none}
   .hs-user-name{display:none}
 }
+/* ── Tablet / small ── */
+@media(max-width:760px){
+  .hs-panel-h{padding:16px 16px}
+  .hs-toolbar{padding:0 16px 14px}
+  .hs-panel-actions{width:100%}
+  .hs-panel-actions .hs-btn.primary{flex:1}
+  .hs-sort{flex:1;min-width:0}
+  .hs-inner-search{width:100%}
+  .hs-table{min-width:0}
+  .hs-table th,.hs-table td{padding:11px 10px}
+  /* ซ่อนคอลัมน์รอง: ห้อง(3), ราคา/ชิ้น(5), หมายเหตุ(8) */
+  .hs-table th:nth-child(3),.hs-table td:nth-child(3),
+  .hs-table th:nth-child(5),.hs-table td:nth-child(5),
+  .hs-table th:nth-child(8),.hs-table td:nth-child(8){display:none}
+  .hs-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+}
 @media(max-width:600px){
   .hs-top{height:64px;gap:10px}
   .hs-hello-t{font-size:23px}
@@ -260,6 +277,26 @@ body{background:var(--hs-bg);color:var(--hs-ink);font-family:'Inter','IBM Plex S
   .hs-sum{border-right:none;border-bottom:1px solid var(--hs-line);padding:12px 0;width:100%}
   .hs-sum:last-child{border-bottom:none}
   .hs-form{grid-template-columns:1fr}
+  .hs-hero{gap:14px}
+  .hs-icon-pick{grid-template-columns:repeat(6,1fr)}
+  .hs-modal-bg{padding:16px 10px}
+  .hs-modal-h{padding:16px 16px 4px}
+  .hs-form{padding:14px 16px 6px}
+  .hs-modal-foot{padding:12px 16px 18px}
+  .hs-rs-info{margin:12px 16px 0}
+}
+/* ── Phone ── */
+@media(max-width:440px){
+  .hs-top-btn{width:40px;height:40px}
+  .hs-user-av{width:32px;height:32px;font-size:14px}
+  .hs-hello-t{font-size:20px}
+  .hs-panel-tt{font-size:16px}
+  /* เหลือคอลัมน์: สินค้า(1) จำนวน(4) มูลค่ารวม(6) สถานะ(7) จัดการ(9) */
+  .hs-table th:nth-child(2),.hs-table td:nth-child(2){display:none}
+  .hs-table th,.hs-table td{padding:10px 8px;font-size:13px}
+  .hs-thumb{width:38px;height:38px;font-size:19px}
+  .hs-grid{grid-template-columns:1fr}
+  .hs-rooms{grid-auto-columns:132px}
 }
 
 /* ── Dark mode ── */
